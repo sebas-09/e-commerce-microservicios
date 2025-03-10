@@ -1,0 +1,23 @@
+spring:
+  application:
+    name: notification-service
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: jsebastian465@gmail.com # Se utiliza una variable de entorno para mayor seguridad
+    password: pbgw vmoo nkqk nbgj # Se utiliza una variable de entorno para mayor seguridad
+    properties:
+      mail.smtp.auth: true
+      mail.smtp.starttls.enable: true
+      mail.smtp.localhost: "notification-service"
+
+server:
+  port: 9020
+
+eureka:
+  instance:
+    preferIpAddress: true # Usa la IP en vez del hostname
+  client:
+    serviceUrl:
+      defaultZone: http://service-registry:8761/eureka/

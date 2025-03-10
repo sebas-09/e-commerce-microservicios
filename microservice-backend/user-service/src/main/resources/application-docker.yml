@@ -1,0 +1,18 @@
+spring:
+  application:
+    name: user-service
+  data:
+    mongodb:
+      host: mongodb
+      port: 27017
+      database: purely_auth_service
+
+server:
+  port: 9050
+
+eureka:
+  instance:
+    preferIpAddress: true # Usa la IP en vez del hostname
+  client:
+    serviceUrl:
+      defaultZone: http://service-registry:8761/eureka/

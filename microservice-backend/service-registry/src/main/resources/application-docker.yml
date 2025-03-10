@@ -1,0 +1,18 @@
+server:
+  port: 8761
+
+spring:
+  application:
+    name: service-registry
+
+eureka:
+  instance:
+    preferIpAddress: true  # Usa el nombre del servicio en Docker
+  client:
+    registerWithEureka: false  # No necesita registrarse en sí mismo
+    fetchRegistry: false
+    
+  server:
+    enableSelfPreservation: false  # Desactiva la autopreservación para forzar registros rápidos
+    evictionIntervalTimerInMs: 5000  # Reduce el tiempo de limpieza de servicios no disponibles
+    peer-node-read-timeout-ms: 5000  # Aumenta el tiempo de espera para evitar errores de timeout

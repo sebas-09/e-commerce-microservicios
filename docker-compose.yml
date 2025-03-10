@@ -1,0 +1,191 @@
+version: "3.8"
+
+networks:
+  mynetwork:
+    driver: bridge
+
+services:
+  service-registry:
+    image: sebastianmon9/ecovida:service-registry
+    build:
+      context: ./microservice-backend/service-registry
+      dockerfile: Dockerfile
+    ports:
+      - "8761:8761"
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8761"]
+      interval: 10s
+      retries: 15
+      start_period: 30s
+
+  api-gateway:
+    image: sebastianmon9/ecovida:api-gateway
+    build:
+      context: ./microservice-backend/api-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      service-registry:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    healthcheck:
+      test: ["CMD", "bash", "-c", "echo > /dev/tcp/localhost/8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+
+  auth-service:
+    image: sebastianmon9/ecovida:auth-service
+    build:
+      context: ./microservice-backend/auth-service
+      dockerfile: Dockerfile
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+
+  category-service:
+    image: sebastianmon9/ecovida:category-service
+    build:
+      context: ./microservice-backend/category-service
+      dockerfile: Dockerfile
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  notification-service:
+    image: sebastianmon9/ecovida:notification-service
+    build:
+      context: ./microservice-backend/notification-service
+      dockerfile: Dockerfile
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      EMAIL_USER: "tu-email@gmail.com"
+      EMAIL_PASS: "tu-contraseña-segura"
+
+  product-service:
+    image: sebastianmon9/ecovida:product-service
+    build:
+      context: ./microservice-backend/product-service
+      dockerfile: Dockerfile
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  user-service:
+    image: sebastianmon9/ecovida:user-service
+    build:
+      context: ./microservice-backend/user-service
+      dockerfile: Dockerfile
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  cart-service:
+    image: sebastianmon9/ecovida:cart-service
+    build:
+      context: ./microservice-backend/cart-service
+      dockerfile: Dockerfile
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  order-service:
+    image: sebastianmon9/ecovida:order-service
+    build:
+      context: ./microservice-backend/order-service
+      dockerfile: Dockerfile
+    depends_on:
+      service-registry:
+        condition: service_healthy
+      api-gateway:
+        condition: service_healthy
+      mongodb:
+        condition: service_healthy
+    networks:
+      - mynetwork
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+
+  mongodb:
+    image: mongo:6.0
+    container_name: mongodb
+    ports:
+      - "27017:27017"
+    networks:
+      - mynetwork
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      retries: 5
+      start_period: 30s
+
+  frontend:
+    image: sebastianmon9/ecovida:frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - mynetwork
+
+volumes:
+  mongo_data:
